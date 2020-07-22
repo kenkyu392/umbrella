@@ -1,5 +1,8 @@
 # umbrella
 
+[![go report card](https://goreportcard.com/badge/github.com/kenkyu392/umbrella)](https://goreportcard.com/report/github.com/kenkyu392/umbrella)
+[![license](https://img.shields.io/github/license/kenkyu392/umbrella.svg)](LICENSE)
+
 ## Installation
 
 ```
