@@ -9,12 +9,14 @@ const (
 
 // AllowUserAgent is middleware that allows a request only if any of
 // the specified strings is included in the User-Agent header.
+// Returns 403 Forbidden status if the request has a user-agent that is not allowed.
 func AllowUserAgent(userAgents ...string) func(next http.Handler) http.Handler {
 	return AllowHTTPHeader(http.StatusForbidden, "User-Agent", userAgents...)
 }
 
 // DisallowUserAgent is middleware that disallow a request only if any of
 // the specified strings is included in the User-Agent header.
+// Returns 403 Forbidden status if the request has a user-agent that is not allowed.
 func DisallowUserAgent(userAgents ...string) func(next http.Handler) http.Handler {
 	return DisallowHTTPHeader(http.StatusForbidden, "User-Agent", userAgents...)
 }

@@ -90,6 +90,49 @@ func main() {
 }
 ```
 
+### AllowContentType/DisallowContentType
+
+Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "ua: %v", r.UserAgent())
+	})
+
+	m := http.NewServeMux()
+
+	allows := umbrella.AllowContentType(
+		"application/json", "text/json",
+		"application/xml", "text/xml",
+	)
+	disallows := umbrella.DisallowContentType(
+		"text/plain", "application/octet-stream",
+	)
+
+	// Only accessible in JSON and XML.
+	m.Handle("/allows",
+		allows(handler),
+	)
+	// Not accessible in Plain text and Binary data.
+	m.Handle("/disallows",
+		disallows(handler),
+	)
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
 ## License
 
 [MIT](LICENSE)
