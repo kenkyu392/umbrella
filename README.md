@@ -133,6 +133,49 @@ func main() {
 }
 ```
 
+### RequestHeader/ResponseHeader
+
+Request/ResponseHeader is middleware that edits request and response headers.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "request: %v response: %v",
+			r.Header.Get("X-Request-Id"),
+			w.Header().Get("X-Response-Id"),
+		)
+	})
+
+	m := http.NewServeMux()
+
+	// You can embed values in request and response headers.
+	mw1 := umbrella.RequestHeader(func(h http.Header) {
+		h.Set("X-Request-Id",
+			fmt.Sprintf("req-%d", time.Now().UnixNano()),
+		)
+	})
+	mw2 := umbrella.ResponseHeader(func(h http.Header) {
+		h.Set("X-Response-Id",
+			fmt.Sprintf("res-%d", time.Now().UnixNano()),
+		)
+	})
+	m.Handle("/", mw1(mw2(handler)))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
 ## License
 
 [MIT](LICENSE)

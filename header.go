@@ -5,6 +5,31 @@ import (
 	"strings"
 )
 
+// HeaderFunc ...
+type HeaderFunc func(header http.Header)
+
+// RequestHeader is middleware that edits the header of the request.
+func RequestHeader(f HeaderFunc) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			f(r.Header)
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
+	}
+}
+
+// ResponseHeader is middleware that edits the header of the response.
+func ResponseHeader(f HeaderFunc) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			f(w.Header())
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
+	}
+}
+
 // AllowHTTPHeader is middleware that allows a request only when one
 // of the specified strings is included in the specified request header.
 func AllowHTTPHeader(badStatus int, name string, values ...string) func(next http.Handler) http.Handler {
