@@ -16,6 +16,14 @@ go get -u github.com/kenkyu392/umbrella
 
 ## Middlewares
 
+| Middleware                                                                   | Description                                                                                             |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [Timeout](#timeout)                                                          | Timeout cancels the context at the given time.                                                          |
+| [Context](#context)                                                          | Context is middleware that operates the context of request scope.                                       |
+| [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.     |
+| [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type. |
+| [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers.                           |
+
 ### Timeout
 
 Timeout cancels the context at the given time.
