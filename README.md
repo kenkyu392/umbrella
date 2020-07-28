@@ -22,6 +22,7 @@ go get -u github.com/kenkyu392/umbrella
 | [Context](#context)                                                          | Context is middleware that operates the context of request scope.                                       |
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header.                                                         |
 | [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe.                          |
+| [ContentSniffing](#contentsniffing)                                          | ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures.                  |
 | [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.     |
 | [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type. |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers.                           |
@@ -128,6 +129,40 @@ func main() {
 
 	// Limit the display of iframe to mitigate clickjacking attacks.
 	mw := umbrella.Clickjacking("deny")
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+### ContentSniffing
+
+ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w,
+			"X-Content-Type-Options: %v",
+			w.Header().Get("X-Content-Type-Options"),
+		)
+	})
+
+	m := http.NewServeMux()
+
+	// It implements a countermeasure for Content-Type snuffing vulnerability,
+	// which is a problem in old Internet Explorer, for example.
+	mw := umbrella.ContentSniffing()
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
