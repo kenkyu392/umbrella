@@ -16,6 +16,49 @@ go get -u github.com/kenkyu392/umbrella
 
 ## Middlewares
 
+### Timeout
+
+Timeout cancels the context at the given time.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"net/http"
+	"time"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d := time.Millisecond * time.Duration(rand.Intn(500)+500)
+		ctx := r.Context()
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(d):
+		}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "duration: %v", d)
+	})
+
+	m := http.NewServeMux()
+
+	// This handler times out in 800ms.
+	mw := umbrella.Timeout(time.Millisecond * 800)
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
 ### Context
 
 Context is middleware that operates the context of request scope.
