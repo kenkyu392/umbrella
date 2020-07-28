@@ -20,6 +20,7 @@ go get -u github.com/kenkyu392/umbrella
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | [Timeout](#timeout)                                                          | Timeout cancels the context at the given time.                                                          |
 | [Context](#context)                                                          | Context is middleware that operates the context of request scope.                                       |
+| [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header.                                                         |
 | [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.     |
 | [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type. |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers.                           |
@@ -61,6 +62,41 @@ func main() {
 
 	// This handler times out in 800ms.
 	mw := umbrella.Timeout(time.Millisecond * 800)
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+### HSTS
+
+HSTS adds the Strict-Transport-Security header.  
+Proper use of this header will mitigate stripping attacks.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w,
+			"Strict-Transport-Security: %v",
+			w.Header().Get("Strict-Transport-Security"),
+		)
+	})
+
+	m := http.NewServeMux()
+
+	// Tells the browser to use HTTPS instead of HTTP to connect to a domain
+	// (including subdomains).
+	mw := umbrella.HSTS(60, "includeSubDomains")
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
