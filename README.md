@@ -23,6 +23,7 @@ go get -u github.com/kenkyu392/umbrella
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header.                                                         |
 | [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe.                          |
 | [ContentSniffing](#contentsniffing)                                          | ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures.                  |
+| [CacheControl/NoCache](#cachecontrolnocache)                                 | CacheControl/NoCache adds the Cache-Control header.                                                     |
 | [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.     |
 | [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type. |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers.                           |
@@ -163,6 +164,49 @@ func main() {
 	// It implements a countermeasure for Content-Type snuffing vulnerability,
 	// which is a problem in old Internet Explorer, for example.
 	mw := umbrella.ContentSniffing()
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+### CacheControl/NoCache
+
+CacheControl/NoCache adds the Cache-Control header.
+
+```go
+package main
+
+import (
+	"crypto/md5"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	data := []byte(`<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+	<circle cx="50" cy="50" r="40" stroke="#6a737d" stroke-width="4" fill="#1b1f23" />
+	</svg>`)
+	etag := fmt.Sprintf(`"%x"`, md5.Sum(data))
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if match := r.Header.Get("If-None-Match"); strings.Contains(match, etag) {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.Header().Set("ETag", etag)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(data))
+	})
+
+	m := http.NewServeMux()
+
+	// Enable browser cache for 2 days.
+	// mw := umbrella.NoCache()
+	mw := umbrella.CacheControl("public", "max-age=172800", "s-maxage=172800")
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
