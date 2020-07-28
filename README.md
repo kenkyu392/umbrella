@@ -21,6 +21,7 @@ go get -u github.com/kenkyu392/umbrella
 | [Timeout](#timeout)                                                          | Timeout cancels the context at the given time.                                                          |
 | [Context](#context)                                                          | Context is middleware that operates the context of request scope.                                       |
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header.                                                         |
+| [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe.                          |
 | [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.     |
 | [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type. |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers.                           |
@@ -97,6 +98,36 @@ func main() {
 	// Tells the browser to use HTTPS instead of HTTP to connect to a domain
 	// (including subdomains).
 	mw := umbrella.HSTS(60, "includeSubDomains")
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+### Clickjacking
+
+Clickjacking mitigates clickjacking attacks by limiting the display of iframe.
+
+```go
+package main
+
+import (
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		// This iframe is not displayed.
+		w.Write([]byte(`<iframe src="https://www.google.com/"></iframe>`))
+	})
+
+	m := http.NewServeMux()
+
+	// Limit the display of iframe to mitigate clickjacking attacks.
+	mw := umbrella.Clickjacking("deny")
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
