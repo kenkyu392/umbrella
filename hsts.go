@@ -7,7 +7,7 @@ import (
 
 // HSTS adds the Strict-Transport-Security header.
 // Proper use of this header will mitigate stripping attacks.
-func HSTS(maxAge int, opt string) func(next http.Handler) http.Handler {
+func HSTS(maxAge int, opt string) func(http.Handler) http.Handler {
 	return ResponseHeader(HSTSHeaderFunc(maxAge, opt))
 }
 

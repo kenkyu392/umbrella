@@ -9,7 +9,7 @@ import (
 type HeaderFunc func(header http.Header)
 
 // RequestHeader is middleware that edits the header of the request.
-func RequestHeader(fs ...HeaderFunc) func(next http.Handler) http.Handler {
+func RequestHeader(fs ...HeaderFunc) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			for _, f := range fs {
@@ -22,7 +22,7 @@ func RequestHeader(fs ...HeaderFunc) func(next http.Handler) http.Handler {
 }
 
 // ResponseHeader is middleware that edits the header of the response.
-func ResponseHeader(fs ...HeaderFunc) func(next http.Handler) http.Handler {
+func ResponseHeader(fs ...HeaderFunc) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			for _, f := range fs {
@@ -36,7 +36,7 @@ func ResponseHeader(fs ...HeaderFunc) func(next http.Handler) http.Handler {
 
 // AllowHTTPHeader is middleware that allows a request only when one
 // of the specified strings is included in the specified request header.
-func AllowHTTPHeader(badStatus int, name string, values ...string) func(next http.Handler) http.Handler {
+func AllowHTTPHeader(badStatus int, name string, values ...string) func(http.Handler) http.Handler {
 	list := make([]string, len(values))
 	for i, v := range values {
 		list[i] = strings.ToLower(v)
@@ -58,7 +58,7 @@ func AllowHTTPHeader(badStatus int, name string, values ...string) func(next htt
 
 // DisallowHTTPHeader is middleware that disallows a request only when one
 // of the specified strings is included in the specified request header.
-func DisallowHTTPHeader(badStatus int, name string, values ...string) func(next http.Handler) http.Handler {
+func DisallowHTTPHeader(badStatus int, name string, values ...string) func(http.Handler) http.Handler {
 	list := make([]string, len(values))
 	for i, v := range values {
 		list[i] = strings.ToLower(v)

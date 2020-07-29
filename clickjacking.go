@@ -7,7 +7,7 @@ import (
 
 // Clickjacking mitigates clickjacking attacks by limiting the display
 // of iframe.
-func Clickjacking(opt string) func(next http.Handler) http.Handler {
+func Clickjacking(opt string) func(http.Handler) http.Handler {
 	return ResponseHeader(ClickjackingHeaderFunc(opt))
 }
 

@@ -6,12 +6,12 @@ import (
 )
 
 // CacheControl adds the Cache-Control header.
-func CacheControl(opts ...string) func(next http.Handler) http.Handler {
+func CacheControl(opts ...string) func(http.Handler) http.Handler {
 	return ResponseHeader(CacheControlHeaderFunc(opts...))
 }
 
 // NoCache adds the Cache-Control to disable the cache.
-func NoCache() func(next http.Handler) http.Handler {
+func NoCache() func(http.Handler) http.Handler {
 	return ResponseHeader(NoCacheHeaderFunc())
 }
 

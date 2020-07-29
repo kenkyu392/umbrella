@@ -4,7 +4,7 @@ import "net/http"
 
 // ContentSniffing adds a header for Content-Type sniffing
 // vulnerability countermeasures.
-func ContentSniffing() func(next http.Handler) http.Handler {
+func ContentSniffing() func(http.Handler) http.Handler {
 	return ResponseHeader(ContentSniffingHeaderFunc())
 }
 
