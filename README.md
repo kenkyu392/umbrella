@@ -19,6 +19,7 @@ go get -u github.com/kenkyu392/umbrella
 | Middleware                                                                   | Description                                                                                             |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | [Use](#use)                                                                  | Creates a single middleware that executes multiple middlewares.                                         |
+| [RealIP](#realip)                                                            | Override the RemoteAddr in http.Request with an X-Forwarded-For or X-Real-IP header.                    |
 | [Timeout](#timeout)                                                          | Timeout cancels the context at the given time.                                                          |
 | [Context](#context)                                                          | Context is middleware that operates the context of request scope.                                       |
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header.                                                         |
@@ -63,6 +64,38 @@ func main() {
 		umbrella.NoCache(),
 		umbrella.Timeout(time.Millisecond*800),
 	)
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+### RealIP
+
+Override the RemoteAddr in http.Request with an X-Forwarded-For or X-Real-IP header.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		// If an X-Forwarded-For or X-Real-IP header is received,
+		// RemoteAddr will be overwritten.
+		fmt.Fprintf(w, "RemoteAddr: %v\n", r.RemoteAddr)
+		r.Write(w)
+	})
+
+	m := http.NewServeMux()
+
+	mw := umbrella.RealIP()
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
