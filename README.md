@@ -27,6 +27,7 @@ go get -u github.com/kenkyu392/umbrella
 | [CacheControl/NoCache](#cachecontrolnocache)                                 | CacheControl/NoCache adds the Cache-Control header.                                                     |
 | [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.     |
 | [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type. |
+| [AllowMethod/DisallowMethod](#allowmethoddisallowmethod)                     | Create an access control using the request method.                                                      |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers.                           |
 
 ### Use
@@ -365,6 +366,37 @@ func main() {
 	m.Handle("/disallows",
 		disallows(handler),
 	)
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+### AllowMethod/DisallowMethod
+
+Create an access control using the request method.
+
+```go
+package main
+
+import (
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		r.Write(w)
+	})
+
+	m := http.NewServeMux()
+
+	// Create an access control using the request method.
+	mw1 := umbrella.DisallowMethod(http.MethodGet)
+	mw2 := umbrella.AllowMethod(http.MethodGet)
+	m.Handle("/mw1", mw1(handler))
+	m.Handle("/mw2", mw2(handler))
 
 	http.ListenAndServe(":3000", m)
 }
