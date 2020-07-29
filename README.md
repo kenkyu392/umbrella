@@ -18,6 +18,7 @@ go get -u github.com/kenkyu392/umbrella
 
 | Middleware                                                                   | Description                                                                                             |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [Use](#use)                                                                  | Creates a single middleware that executes multiple middlewares.                                         |
 | [Timeout](#timeout)                                                          | Timeout cancels the context at the given time.                                                          |
 | [Context](#context)                                                          | Context is middleware that operates the context of request scope.                                       |
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header.                                                         |
@@ -27,6 +28,45 @@ go get -u github.com/kenkyu392/umbrella
 | [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.     |
 | [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type. |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers.                           |
+
+### Use
+
+Creates a single middleware that executes multiple middlewares.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		for k := range w.Header() {
+			fmt.Fprintf(w, "%s: %s\n", k, w.Header().Get(k))
+		}
+	})
+
+	m := http.NewServeMux()
+
+	// Creates a single middleware that executes multiple middlewares.
+	mw := umbrella.Use(
+		umbrella.AllowUserAgent("Firefox", "Chrome"),
+		umbrella.Clickjacking("deny"),
+		umbrella.ContentSniffing(),
+		umbrella.NoCache(),
+		umbrella.Timeout(time.Millisecond*800),
+	)
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
 
 ### Timeout
 
