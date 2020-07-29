@@ -20,6 +20,7 @@ go get -u github.com/kenkyu392/umbrella
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | [Use](#use)                                                                  | Creates a single middleware that executes multiple middlewares.                                         |
 | [RealIP](#realip)                                                            | Override the RemoteAddr in http.Request with an X-Forwarded-For or X-Real-IP header.                    |
+| [Recover](#recover)                                                          | Recover from panic and record a stack trace and return a 500 Internal Server Error status.              |
 | [Timeout](#timeout)                                                          | Timeout cancels the context at the given time.                                                          |
 | [Context](#context)                                                          | Context is middleware that operates the context of request scope.                                       |
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header.                                                         |
@@ -96,6 +97,42 @@ func main() {
 	m := http.NewServeMux()
 
 	mw := umbrella.RealIP()
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+### Recover
+
+Recover from panic and record a stack trace and return a 500 Internal Server Error status.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		now := time.Now()
+		if now.Unix()%2 == 0 {
+			panic(fmt.Sprintf("panic: %v\n", now))
+		}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Time: %v\n", now)
+		r.Write(w)
+	})
+
+	m := http.NewServeMux()
+
+	// If you give nil, it will be output to os.Stderr.
+	mw := umbrella.Recover(nil)
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
