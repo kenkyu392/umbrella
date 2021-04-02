@@ -37,6 +37,9 @@ go get -u github.com/kenkyu392/umbrella
 
 Creates a single middleware that executes multiple middleware.
 
+<details>
+<summary><b><i>Example :</i></b></summary>
+
 ```go
 package main
 
@@ -72,9 +75,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### RealIP
 
 Override the RemoteAddr in http.Request with an X-Forwarded-For or X-Real-IP header.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -104,9 +113,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### Recover
 
 Recover from panic and record a stack trace and return a 500 Internal Server Error status.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -140,9 +155,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### Timeout
 
 Timeout cancels the context at the given time.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -183,10 +204,16 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### HSTS
 
 HSTS adds the Strict-Transport-Security header.  
 Proper use of this header will mitigate stripping attacks.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -218,9 +245,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### Clickjacking
 
 Clickjacking mitigates clickjacking attacks by limiting the display of iframe.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -248,9 +281,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### ContentSniffing
 
 ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -282,9 +321,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### CacheControl/NoCache
 
 CacheControl/NoCache adds the Cache-Control header.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -325,9 +370,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### Context
 
 Context is middleware that manipulates request scope context.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -361,9 +412,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### AllowUserAgent/DisallowUserAgent
 
 Allow/DisallowUserAgent middleware controls the request based on the User-Agent header of the request.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -399,9 +456,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### AllowContentType/DisallowContentType
 
 Allow/DisallowContentType middleware controls the request based on the Content-Type header of the request.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -442,9 +505,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### AllowAccept/DisallowAccept
 
 Allow/DisallowAccept middleware controls the request based on the Accept header of the request.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -484,9 +553,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### AllowMethod/DisallowMethod
 
 Create an access control using the request method.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -515,9 +590,15 @@ func main() {
 }
 ```
 
+</details>
+
+
 ### RequestHeader/ResponseHeader
 
 Request/ResponseHeader is middleware that edits request and response headers.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
 
 ```go
 package main
@@ -557,6 +638,9 @@ func main() {
 	http.ListenAndServe(":3000", m)
 }
 ```
+
+</details>
+
 
 ## License
 
