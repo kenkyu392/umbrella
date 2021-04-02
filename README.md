@@ -14,27 +14,28 @@ This package provides middleware intended for use with various frameworks compat
 go get -u github.com/kenkyu392/umbrella
 ```
 
-## Middlewares
+## Middleware
 
 | Middleware                                                                   | Description                                                                                             |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| [Use](#use)                                                                  | Creates a single middleware that executes multiple middlewares.                                         |
-| [RealIP](#realip)                                                            | Override the RemoteAddr in http.Request with an X-Forwarded-For or X-Real-IP header.                    |
-| [Recover](#recover)                                                          | Recover from panic and record a stack trace and return a 500 Internal Server Error status.              |
-| [Timeout](#timeout)                                                          | Timeout cancels the context at the given time.                                                          |
-| [Context](#context)                                                          | Context is middleware that operates the context of request scope.                                       |
-| [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header.                                                         |
-| [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe.                          |
-| [ContentSniffing](#contentsniffing)                                          | ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures.                  |
-| [CacheControl/NoCache](#cachecontrolnocache)                                 | CacheControl/NoCache adds the Cache-Control header.                                                     |
-| [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.     |
-| [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type. |
-| [AllowMethod/DisallowMethod](#allowmethoddisallowmethod)                     | Create an access control using the request method.                                                      |
-| [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers.                           |
+| [Use](#use)                                                                  | Creates a single middleware that executes multiple middleware. |
+| [RealIP](#realip)                                                            | Override the RemoteAddr in http.Request with an X-Forwarded-For or X-Real-IP header. |
+| [Recover](#recover)                                                          | Recover from panic and record a stack trace and return a 500 Internal Server Error status. |
+| [Timeout](#timeout)                                                          | Timeout cancels the context at the given time. |
+| [Context](#context)                                                          | Context is middleware that manipulates request scope context. |
+| [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header. |
+| [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe. |
+| [ContentSniffing](#contentsniffing)                                          | ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures. |
+| [CacheControl/NoCache](#cachecontrolnocache)                                 | CacheControl/NoCache adds the Cache-Control header. |
+| [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent middleware controls the request based on the User-Agent header of the request. |
+| [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType middleware controls the request based on the Content-Type header of the request. |
+| [AllowAccept/DisallowAccept](#allowacceptdisallowaccept) | Allow/DisallowAccept middleware controls the request based on the Accept header of the request. |
+| [AllowMethod/DisallowMethod](#allowmethoddisallowmethod)                     | Create an access control using the request method. |
+| [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers. |
 
 ### Use
 
-Creates a single middleware that executes multiple middlewares.
+Creates a single middleware that executes multiple middleware.
 
 ```go
 package main
@@ -57,7 +58,7 @@ func main() {
 
 	m := http.NewServeMux()
 
-	// Creates a single middleware that executes multiple middlewares.
+	// Creates a single middleware that executes multiple middleware.
 	mw := umbrella.Use(
 		umbrella.AllowUserAgent("Firefox", "Chrome"),
 		umbrella.Clickjacking("deny"),
@@ -326,7 +327,7 @@ func main() {
 
 ### Context
 
-Context is middleware that operates the context of request scope.
+Context is middleware that manipulates request scope context.
 
 ```go
 package main
@@ -362,7 +363,7 @@ func main() {
 
 ### AllowUserAgent/DisallowUserAgent
 
-Allow/DisallowUserAgent is middleware that performs authentication based on the request User-Agent.
+Allow/DisallowUserAgent middleware controls the request based on the User-Agent header of the request.
 
 ```go
 package main
@@ -400,7 +401,7 @@ func main() {
 
 ### AllowContentType/DisallowContentType
 
-Allow/DisallowContentType is middleware that performs authentication based on the request Content-Type.
+Allow/DisallowContentType middleware controls the request based on the Content-Type header of the request.
 
 ```go
 package main
@@ -433,6 +434,48 @@ func main() {
 		allows(handler),
 	)
 	// Not accessible in Plain text and Binary data.
+	m.Handle("/disallows",
+		disallows(handler),
+	)
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+### AllowAccept/DisallowAccept
+
+Allow/DisallowAccept middleware controls the request based on the Accept header of the request.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "ua: %v", r.UserAgent())
+	})
+
+	m := http.NewServeMux()
+
+	allows := umbrella.AllowAccept(
+		"application/json", "text/json",
+	)
+	disallows := umbrella.DisallowAccept(
+		"text/plain", "text/html",
+	)
+
+	// Only accessible in JSON.
+	m.Handle("/allows",
+		allows(handler),
+	)
+	// Not accessible in Plain text and HTML data.
 	m.Handle("/disallows",
 		disallows(handler),
 	)
