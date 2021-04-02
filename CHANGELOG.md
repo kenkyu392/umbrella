@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added CacheControl/NoCache middleware for adding Cache-Control header to response headers.
 - Added AllowMethod/DisallowMethod middleware that uses request methods for access control.
 - Added RealIP middleware to override RemoteAddr using X-Forwarded-For or X-Real-IP headers.
-- Added Use middleware that integrates multiple middlewares.
+- Added Use middleware that integrates multiple middleware.
 
 ## [0.2.0](../../releases/tag/v0.2.0) - 2020-07-28
 
