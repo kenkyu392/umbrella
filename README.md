@@ -6,7 +6,7 @@
 [![go report card](https://goreportcard.com/badge/github.com/kenkyu392/umbrella)](https://goreportcard.com/report/github.com/kenkyu392/umbrella)
 [![license](https://img.shields.io/github/license/kenkyu392/umbrella.svg)](LICENSE)
 
-This package provides middleware intended for use with various frameworks compatible with the standard `net/http` ecosystem.
+This package provides over 20 pieces of middleware that can be used in a variety of frameworks compatible with the standard `net/http` ecosystem.
 
 ## Installation
 
