@@ -23,6 +23,7 @@ go get -u github.com/kenkyu392/umbrella
 | [Recover](#recover)                                                          | Recover from panic and record a stack trace and return a 500 Internal Server Error status. |
 | [Timeout](#timeout)                                                          | Timeout cancels the context at the given time. |
 | [Context](#context)                                                          | Context is middleware that manipulates request scope context. |
+| [Stampede](#stampede)                                                        | Stampede provides a simple cache middleware that is valid for a specified amount of time. |
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header. |
 | [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe. |
 | [ContentSniffing](#contentsniffing)                                          | ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures. |
@@ -199,6 +200,47 @@ func main() {
 	// This handler times out in 800ms.
 	mw := umbrella.Timeout(time.Millisecond * 800)
 	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+</details>
+
+
+### Stampede
+
+Stampede provides a simple cache middleware that is valid for a specified amount of time.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query().Get("q")
+		log.Printf("Search: %s", q)
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Search: %s", q)
+	})
+
+	m := http.NewServeMux()
+
+	// Create a middleware with a cache that expires in 5 seconds.
+	mw := umbrella.Stampede(time.Second * 5)
+	m.Handle("/search", mw(handler))
 
 	http.ListenAndServe(":3000", m)
 }
