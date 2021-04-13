@@ -16,21 +16,22 @@ go get -u github.com/kenkyu392/umbrella
 
 ## Middleware
 
-| Middleware                                                                   | Description                                                                                             |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Middleware | Description |
+| ---------- | ----------- |
 | [Use](#use)                                                                  | Creates a single middleware that executes multiple middleware. |
 | [RealIP](#realip)                                                            | Override the RemoteAddr in http.Request with an X-Forwarded-For or X-Real-IP header. |
 | [Recover](#recover)                                                          | Recover from panic and record a stack trace and return a 500 Internal Server Error status. |
 | [Timeout](#timeout)                                                          | Timeout cancels the context at the given time. |
 | [Context](#context)                                                          | Context is middleware that manipulates request scope context. |
 | [Stampede](#stampede)                                                        | Stampede provides a simple cache middleware that is valid for a specified amount of time. |
+| [MetricsRecorder](#metricsrecorder)                                          | MetricsRecorder provides simple metrics such as request/response size and request duration. |
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header. |
 | [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe. |
 | [ContentSniffing](#contentsniffing)                                          | ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures. |
 | [CacheControl/NoCache](#cachecontrolnocache)                                 | CacheControl/NoCache adds the Cache-Control header. |
 | [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent middleware controls the request based on the User-Agent header of the request. |
 | [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType middleware controls the request based on the Content-Type header of the request. |
-| [AllowAccept/DisallowAccept](#allowacceptdisallowaccept) | Allow/DisallowAccept middleware controls the request based on the Accept header of the request. |
+| [AllowAccept/DisallowAccept](#allowacceptdisallowaccept)                     | Allow/DisallowAccept middleware controls the request based on the Accept header of the request. |
 | [AllowMethod/DisallowMethod](#allowmethoddisallowmethod)                     | Create an access control using the request method. |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers. |
 
@@ -241,6 +242,48 @@ func main() {
 	// Create a middleware with a cache that expires in 5 seconds.
 	mw := umbrella.Stampede(time.Second * 5)
 	m.Handle("/search", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+</details>
+
+
+### MetricsRecorder
+
+MetricsRecorder provides simple metrics such as request/response size and request duration.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query().Get("q")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Search: %s", q)
+	})
+
+	m := http.NewServeMux()
+
+	// Create a MetricsRecorder and start recording using the middleware.
+	mr := umbrella.NewMetricsRecorder()
+	m.Handle("/search", mr.Middleware()(handler))
+	// You can use MetricsRecorder.Handler to view the metrics.
+	// ~$ curl -s http://localhost:3000/metrics | jq .
+	m.Handle("/metrics", http.HandlerFunc(mr.Handler))
 
 	http.ListenAndServe(":3000", m)
 }
