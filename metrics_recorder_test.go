@@ -11,7 +11,14 @@ import (
 
 func TestMetricsRecorder(t *testing.T) {
 	t.Run("case=ok", func(t *testing.T) {
-		mr := NewMetricsRecorder()
+		mr := NewMetricsRecorder(
+			WithRequestMetricsHookFunc(func(rm *RequestMetrics) {
+				rm2 := rm.Clone()
+				if !reflect.DeepEqual(rm2, rm) {
+					t.Errorf("\ngot: %#v \nwant: %#v", rm2, rm)
+				}
+			}),
+		)
 		mw := mr.Middleware()
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/metrics" {
