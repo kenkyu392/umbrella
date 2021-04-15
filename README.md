@@ -261,6 +261,7 @@ MetricsRecorder provides simple metrics such as request/response size and reques
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -279,7 +280,17 @@ func main() {
 	m := http.NewServeMux()
 
 	// Create a MetricsRecorder and start recording using the middleware.
-	mr := umbrella.NewMetricsRecorder()
+	mr := umbrella.NewMetricsRecorder(
+		umbrella.WithRequestMetricsHookFunc(func(rm *umbrella.RequestMetrics) {
+			// You can use hook functions to output request metrics to a log
+			// or send them to a monitoring service.
+			raw, err := json.Marshal(rm)
+			if err != nil {
+				log.Println(err)
+			}
+			log.Printf("%s", raw)
+		}),
+	)
 	m.Handle("/search", mr.Middleware()(handler))
 	// You can use MetricsRecorder.Handler to view the metrics.
 	// ~$ curl -s http://localhost:3000/metrics | jq .
