@@ -14,6 +14,93 @@ This package provides 20+ middleware that can be used in various frameworks comp
 go get -u github.com/kenkyu392/umbrella
 ```
 
+## Usage
+
+The middleware provided in this package can be used by intuitively combining individual functions.  
+Documentation for all middleware can be found [here](#middleware).
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func init() {
+	os.Setenv("DEBUG", "true")
+}
+
+func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	m := http.NewServeMux()
+
+	// Create a MetricsRecorder and start recording using the middleware.
+	mr := umbrella.NewMetricsRecorder(
+		umbrella.WithRequestMetricsHookFunc(func(rm *umbrella.RequestMetrics) {
+			// You can use hook functions to output request metrics to a log
+			// or send them to a monitoring service.
+			raw, err := json.Marshal(rm)
+			if err != nil {
+				log.Println(err)
+			}
+			log.Printf("%s", raw)
+		}),
+	)
+
+	// Create the middleware.
+	mw := umbrella.Use(
+		// Recover panic.
+		umbrella.Recover(os.Stderr),
+		// Enables the recording of metrics.
+		mr.Middleware(),
+		// Only accessible in Firefox and Chrome.
+		umbrella.AllowUserAgent("Firefox", "Chrome"),
+		// Limit the display of iframe to mitigate clickjacking attacks.
+		umbrella.Clickjacking("deny"),
+		// It implements a countermeasure for Content-Type snuffing vulnerability,
+		// which is a problem in old Internet Explorer, for example.
+		umbrella.ContentSniffing(),
+		// Enable browser cache for 120s.
+		umbrella.CacheControl("public", "max-age=120", "s-maxage=120"),
+		// Make it timeout in 800ms.
+		umbrella.Timeout(time.Millisecond*800),
+		// Enable caching for 2s.
+		umbrella.Stampede(time.Second*2),
+		// Limit the number of requests from the same IP address to 10 per second.
+		umbrella.RateLimitPerIP(10),
+	)
+
+	// Enable the handler for debugging using the value set in the environment variable.
+	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
+	debugMW := umbrella.Use(
+		umbrella.Recover(os.Stderr),
+		umbrella.Debug(debug),
+	)
+
+	m.Handle("/search", mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query().Get("q")
+		log.Printf("Search: %s", q)
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Search: %s", q)
+	})))
+
+	// You can use MetricsRecorder.Handler to view the metrics.
+	// ~$ curl -s http://localhost:3000/metrics | jq .
+	m.Handle("/metrics", debugMW(http.HandlerFunc(mr.Handler)))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
 ## Middleware
 
 | Middleware | Description |
