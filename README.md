@@ -24,7 +24,7 @@ go get -u github.com/kenkyu392/umbrella
 | [Timeout](#timeout)                                                          | Timeout cancels the context at the given time. |
 | [Context](#context)                                                          | Context is middleware that manipulates request scope context. |
 | [Stampede](#stampede)                                                        | Stampede provides a simple cache middleware that is valid for a specified amount of time. |
-| [RateLimit/RateLimitPerIP](#ratelimitratelimitperip)                                       | RateLimit provides middleware that limits the number of requests processed per second. |
+| [RateLimit/RateLimitPerIP](#ratelimitratelimitperip)                         | RateLimit provides middleware that limits the number of requests processed per second. |
 | [MetricsRecorder](#metricsrecorder)                                          | MetricsRecorder provides simple metrics such as request/response size and request duration. |
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header. |
 | [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe. |
@@ -35,6 +35,7 @@ go get -u github.com/kenkyu392/umbrella
 | [AllowAccept/DisallowAccept](#allowacceptdisallowaccept)                     | Allow/DisallowAccept middleware controls the request based on the Accept header of the request. |
 | [AllowMethod/DisallowMethod](#allowmethoddisallowmethod)                     | Create an access control using the request method. |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers. |
+| [Debug](debug)                                                               | Debug provides middleware that executes the handler only if d is true. |
 
 ### Use
 
@@ -771,6 +772,44 @@ func main() {
 		)
 	})
 	m.Handle("/", mw1(mw2(handler)))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+</details>
+
+
+### Debug
+
+Debug provides middleware that executes the handler only if d is true.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
+
+```go
+package main
+
+import (
+	"net/http"
+	"os"
+	"strconv"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Debug handler implementation.
+		w.WriteHeader(http.StatusOK)
+	})
+
+	m := http.NewServeMux()
+
+	// Enable the handler for debugging using the value set in the environment variable.
+	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
+	mw := umbrella.Debug(debug)
+	m.Handle("/debug", mw(handler))
 
 	http.ListenAndServe(":3000", m)
 }
