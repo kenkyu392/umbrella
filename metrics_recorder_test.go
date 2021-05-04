@@ -76,6 +76,8 @@ func TestMetricsRecorder(t *testing.T) {
 			t.Error(err)
 		}
 		want := mr.Metrics()
+		want.UptimeDurationNanoseconds = got.UptimeDurationNanoseconds
+		want.UptimeDurationMilliseconds = got.UptimeDurationMilliseconds
 		want.GoroutinesTotalCount = got.GoroutinesTotalCount
 		want.MaxGoroutinesCount = got.MaxGoroutinesCount
 		want.MinGoroutinesCount = got.MinGoroutinesCount

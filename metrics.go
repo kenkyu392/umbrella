@@ -6,6 +6,9 @@ import (
 
 // Metrics ...
 type Metrics struct {
+	UptimeDurationNanoseconds  int64 `json:"uptimeDurationNanoseconds"`
+	UptimeDurationMilliseconds int64 `json:"uptimeDurationMilliseconds"`
+
 	GoroutinesTotalCount int64 `json:"goroutinesTotalCount"`
 	MaxGoroutinesCount   int64 `json:"maxGoroutinesCount"`
 	MinGoroutinesCount   int64 `json:"minGoroutinesCount"`
@@ -36,6 +39,8 @@ type Metrics struct {
 // Clone returns a new Metrics with the same value.
 func (m *Metrics) Clone() *Metrics {
 	m2 := &Metrics{
+		UptimeDurationNanoseconds:        m.UptimeDurationNanoseconds,
+		UptimeDurationMilliseconds:       m.UptimeDurationMilliseconds,
 		GoroutinesTotalCount:             m.GoroutinesTotalCount,
 		MaxGoroutinesCount:               m.MaxGoroutinesCount,
 		MinGoroutinesCount:               m.MinGoroutinesCount,

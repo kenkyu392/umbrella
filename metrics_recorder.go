@@ -61,6 +61,10 @@ func (mr *MetricsRecorder) Middleware() func(http.Handler) http.Handler {
 			// Start recording metrics.
 			mr.rwm.Lock()
 
+			uptime := startTime.Sub(processStartTime)
+			mr.m.UptimeDurationNanoseconds = uptime.Nanoseconds()
+			mr.m.UptimeDurationMilliseconds = uptime.Milliseconds()
+
 			mr.m.RequestsTotalCount++
 
 			// Measure the body size of the request/response.
