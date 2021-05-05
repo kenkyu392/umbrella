@@ -105,6 +105,8 @@ This is an example of middleware used to deliver static files such as images.
 
 ```go
 mw := umbrella.Use(
+  // Sets the ETag.
+  umbrella.ETag(),
 	// Add headers for basic cache control, etc.
 	umbrella.ResponseHeader(
 		umbrella.ClickjackingHeaderFunc("deny"),
@@ -143,6 +145,7 @@ mw := umbrella.Use(
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers. |
 | [Debug](#debug)                                                               | Debug provides middleware that executes the handler only if d is true. |
 | [Switch](#switch)                                                             | Switch provides a middleware that executes the next handler if the result of f is true, and executes h if it is false. |
+| [ETag](#etag)                                                                 | ETag provides middleware that calculates MD5 from the response data and sets it in the ETag header. |
 
 ### Use
 
@@ -956,6 +959,60 @@ func main() {
 		return true
 	}, forbidden)
 
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+</details>
+
+
+### ETag
+
+ETag provides middleware that calculates MD5 from the response data and sets it in the ETag header.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
+
+```go
+package main
+
+import (
+	"crypto/md5"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	data := []byte(`<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+	<circle cx="50" cy="50" r="40" stroke="#6a737d" stroke-width="4" fill="#1b1f23" />
+	</svg>`)
+	etag := fmt.Sprintf(`"%x"`, md5.Sum(data))
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if match := r.Header.Get("If-None-Match"); strings.Contains(match, etag) {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(data))
+	})
+
+	m := http.NewServeMux()
+
+	mw := umbrella.Use(
+		// Automatically calculates and sets the ETag.
+		umbrella.ETag(),
+		umbrella.ResponseHeader(
+			umbrella.CacheControlHeaderFunc("public", "max-age=86400", "no-transform"),
+			umbrella.ExpiresHeaderFunc(time.Second*86400),
+		),
+	)
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
