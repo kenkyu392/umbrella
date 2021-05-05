@@ -105,8 +105,8 @@ This is an example of middleware used to deliver static files such as images.
 
 ```go
 mw := umbrella.Use(
-  // Sets the ETag.
-  umbrella.ETag(),
+	// Sets the ETag.
+	umbrella.ETag(),
 	// Add headers for basic cache control, etc.
 	umbrella.ResponseHeader(
 		umbrella.ClickjackingHeaderFunc("deny"),
