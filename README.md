@@ -71,7 +71,7 @@ func main() {
 		umbrella.ContentSniffing(),
 		// Enable browser cache for 120s.
 		umbrella.CacheControl("public", "max-age=120", "s-maxage=120"),
-		// Make it timeout in 800ms.
+		// Set the timeout at 800ms.
 		umbrella.Timeout(time.Millisecond*800),
 		// Enable caching for 2s.
 		umbrella.Stampede(time.Second*2),
@@ -99,6 +99,25 @@ func main() {
 
 	http.ListenAndServe(":3000", m)
 }
+```
+
+This is an example of middleware used to deliver static files such as images.
+
+```go
+mw := umbrella.Use(
+	// Add headers for basic cache control, etc.
+	umbrella.ResponseHeader(
+		umbrella.ClickjackingHeaderFunc("deny"),
+		umbrella.ContentSniffingHeaderFunc(),
+		umbrella.XSSFilteringHeaderFunc("1; mode=block"),
+		umbrella.CacheControlHeaderFunc("public", "max-age=86400", "no-transform"),
+		umbrella.ExpiresHeaderFunc(time.Second*86400),
+	),
+	// Set the timeout at 2s.
+	umbrella.Timeout(time.Second*2),
+	// Enable caching for 60s.
+	umbrella.Stampede(time.Second*60),
+)
 ```
 
 ## Middleware
