@@ -122,7 +122,8 @@ func main() {
 | [AllowAccept/DisallowAccept](#allowacceptdisallowaccept)                     | Allow/DisallowAccept middleware controls the request based on the Accept header of the request. |
 | [AllowMethod/DisallowMethod](#allowmethoddisallowmethod)                     | Create an access control using the request method. |
 | [RequestHeader/ResponseHeader](#requestheaderresponseheader)                 | Request/ResponseHeader is middleware that edits request and response headers. |
-| [Debug](debug)                                                               | Debug provides middleware that executes the handler only if d is true. |
+| [Debug](#debug)                                                               | Debug provides middleware that executes the handler only if d is true. |
+| [Switch](#switch)                                                             | Switch provides a middleware that executes the next handler if the result of f is true, and executes h if it is false. |
 
 ### Use
 
@@ -897,6 +898,46 @@ func main() {
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 	mw := umbrella.Debug(debug)
 	m.Handle("/debug", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+</details>
+
+
+### Switch
+
+Switch provides a middleware that executes the next handler if the result of f is true, and executes h if it is false.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
+
+```go
+package main
+
+import (
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	forbidden := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+	})
+
+	m := http.NewServeMux()
+
+	mw := umbrella.Switch(func(r *http.Request) bool {
+		// e.g. checking the prerequisites for a request such as authentication information...
+		return true
+	}, forbidden)
+
+	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
 }
