@@ -146,6 +146,7 @@ mw := umbrella.Use(
 | [Debug](#debug)                                                               | Debug provides middleware that executes the handler only if d is true. |
 | [Switch](#switch)                                                             | Switch provides a middleware that executes the next handler if the result of f is true, and executes h if it is false. |
 | [ETag](#etag)                                                                 | ETag provides middleware that calculates MD5 from the response data and sets it in the ETag header. |
+| [Expires](#expires) |                                                         | Expires provides middleware for adding response expiration dates. |
 
 ### Use
 
@@ -1013,6 +1014,55 @@ func main() {
 			umbrella.ExpiresHeaderFunc(time.Second*86400),
 		),
 	)
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+</details>
+
+
+### Expires
+
+Expires provides middleware for adding response expiration dates.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
+
+```go
+package main
+
+import (
+	"crypto/md5"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	data := []byte(`<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+	<circle cx="50" cy="50" r="40" stroke="#6a737d" stroke-width="4" fill="#1b1f23" />
+	</svg>`)
+	etag := fmt.Sprintf(`"%x"`, md5.Sum(data))
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if match := r.Header.Get("If-None-Match"); strings.Contains(match, etag) {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.Header().Set("ETag", etag)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(data))
+	})
+
+	m := http.NewServeMux()
+
+	// Enable browser cache for 2 days.
+	mw := umbrella.Expires(time.Second * 172800)
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
