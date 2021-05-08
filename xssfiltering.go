@@ -4,7 +4,8 @@ import (
 	"net/http"
 )
 
-// XSSFiltering provides middleware to add headers to enable XSS filtering.
+// XSSFiltering provides middleware that enables the ability to stop a page from
+// loading when a cross-site scripting attack is detected.
 func XSSFiltering(opt string) func(http.Handler) http.Handler {
 	return ResponseHeader(XSSFilteringHeaderFunc(opt))
 }
