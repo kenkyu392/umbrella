@@ -137,6 +137,7 @@ mw := umbrella.Use(
 | [HSTS](#hsts)                                                                | HSTS adds the Strict-Transport-Security header. |
 | [Clickjacking](#clickjacking)                                                | Clickjacking mitigates clickjacking attacks by limiting the display of iframe. |
 | [ContentSniffing](#contentsniffing)                                          | ContentSniffing adds a header for Content-Type sniffing vulnerability countermeasures. |
+| [XSSFiltering](#xssfiltering)                                                | XSSFiltering provides middleware that enables the ability to stop a page from loading when a cross-site scripting attack is detected. |
 | [CacheControl/NoCache](#cachecontrolnocache)                                 | CacheControl/NoCache adds the Cache-Control header. |
 | [AllowUserAgent/DisallowUserAgent](#allowuseragentdisallowuseragent)         | Allow/DisallowUserAgent middleware controls the request based on the User-Agent header of the request. |
 | [AllowContentType/DisallowContentType](#allowcontenttypedisallowcontenttype) | Allow/DisallowContentType middleware controls the request based on the Content-Type header of the request. |
@@ -564,6 +565,46 @@ func main() {
 	// It implements a countermeasure for Content-Type snuffing vulnerability,
 	// which is a problem in old Internet Explorer, for example.
 	mw := umbrella.ContentSniffing()
+	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+</details>
+
+
+### XSSFiltering
+
+XSSFiltering provides middleware that enables the ability to stop a page from loading when a cross-site scripting attack is detected.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w,
+			"X-XSS-Protection: %v",
+			w.Header().Get("X-XSS-Protection"),
+		)
+	})
+
+	m := http.NewServeMux()
+
+	// Enable the filter function (stop page loading) for cross-site scripting (XSS).
+	// This header is for browsers that do not support Content-Security-Policy.
+	mw := umbrella.XSSFiltering("0") // If empty, "1; mode=block" will be set.
 	m.Handle("/", mw(handler))
 
 	http.ListenAndServe(":3000", m)
