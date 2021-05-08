@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0](../../releases/tag/v0.10.0) - 2021-05-08
+
+### Added
+
+- Added Switch middleware to switch the handler to be executed next.
+- Added the ETag middleware, which calculates ETag from the data in the response and adds the header.
+- Added XSSFiltering middleware to stop loading pages when a cross-site scripting attack is detected.
+- Added Expires middleware to set the expiration date of responses.
+
+### Changed
+
+- Changed the internal implementation of Debug middleware to Switch middleware.
+
+
 ## [0.9.0](../../releases/tag/v0.9.0) - 2021-05-04
 
 ### Added
