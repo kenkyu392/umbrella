@@ -11,7 +11,5 @@ func ContentSniffing() func(http.Handler) http.Handler {
 // ContentSniffingHeaderFunc returns a HeaderFunc for Content-Type
 // sniffing vulnerability countermeasure.
 func ContentSniffingHeaderFunc() HeaderFunc {
-	return func(header http.Header) {
-		header.Set("X-Content-Type-Options", "nosniff")
-	}
+	return AddHeaderFunc("X-Content-Type-Options", "nosniff")
 }

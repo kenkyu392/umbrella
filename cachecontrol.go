@@ -22,9 +22,7 @@ func CacheControlHeaderFunc(opts ...string) HeaderFunc {
 		return func(_ http.Header) {}
 	}
 	value := strings.Join(opts, ",")
-	return func(header http.Header) {
-		header.Set("Cache-Control", value)
-	}
+	return AddHeaderFunc("Cache-Control", value)
 }
 
 // NoCacheHeaderFunc returns the HeaderFunc to add the Cache-Control

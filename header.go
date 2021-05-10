@@ -79,3 +79,10 @@ func DisallowHTTPHeader(badStatus int, name string, values ...string) func(http.
 		return http.HandlerFunc(fn)
 	}
 }
+
+// AddHeaderFunc adds the key, value pair to the header.
+func AddHeaderFunc(key, value string) HeaderFunc {
+	return func(header http.Header) {
+		header.Set(key, value)
+	}
+}

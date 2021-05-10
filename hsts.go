@@ -21,7 +21,5 @@ func HSTSHeaderFunc(maxAge int, opt string) HeaderFunc {
 	if opt == "includeSubDomains" || opt == "preload" {
 		value = fmt.Sprintf("%s; %s", value, opt)
 	}
-	return func(header http.Header) {
-		header.Set("Strict-Transport-Security", value)
-	}
+	return AddHeaderFunc("Strict-Transport-Security", value)
 }

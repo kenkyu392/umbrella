@@ -15,7 +15,5 @@ func XSSFilteringHeaderFunc(opt string) HeaderFunc {
 	if opt == "" {
 		opt = "1; mode=block"
 	}
-	return func(header http.Header) {
-		header.Set("X-XSS-Protection", opt)
-	}
+	return AddHeaderFunc("X-XSS-Protection", opt)
 }

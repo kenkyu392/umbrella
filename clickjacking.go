@@ -18,7 +18,5 @@ func ClickjackingHeaderFunc(opt string) HeaderFunc {
 	if opt != "deny" && opt != "sameorigin" {
 		opt = "deny"
 	}
-	return func(header http.Header) {
-		header.Set("X-Frame-Options", opt)
-	}
+	return AddHeaderFunc("X-Frame-Options", opt)
 }
