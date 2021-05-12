@@ -895,16 +895,25 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/kenkyu392/umbrella"
 )
 
+const Version = "1.0.0"
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func main() {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "request: %v response: %v",
+		fmt.Fprintf(w, "version:%s request:%s response:%s",
+			w.Header().Get("X-Version"),
 			r.Header.Get("X-Request-Id"),
 			w.Header().Get("X-Response-Id"),
 		)
@@ -913,19 +922,29 @@ func main() {
 	m := http.NewServeMux()
 
 	// You can embed values in request and response headers.
-	mw1 := umbrella.RequestHeader(func(h http.Header) {
-		h.Set("X-Request-Id",
-			fmt.Sprintf("req-%d", time.Now().UnixNano()),
-		)
-	})
-	mw2 := umbrella.ResponseHeader(func(h http.Header) {
-		h.Set("X-Response-Id",
-			fmt.Sprintf("res-%d", time.Now().UnixNano()),
-		)
-	})
+	mw1 := umbrella.RequestHeader(
+		func(h http.Header) {
+			h.Set("X-Request-Id", generateID())
+		},
+	)
+	mw2 := umbrella.ResponseHeader(
+		func(h http.Header) {
+			h.Set("X-Response-Id", generateID())
+		},
+		umbrella.AddHeaderFunc("X-Version", Version),
+	)
 	m.Handle("/", mw1(mw2(handler)))
 
 	http.ListenAndServe(":3000", m)
+}
+
+func generateID() string {
+	var chars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	var b strings.Builder
+	for i := 0; i < 6; i++ {
+		b.WriteRune(chars[rand.Intn(len(chars))])
+	}
+	return fmt.Sprintf("%s%x", b.String(), time.Now().UnixNano())
 }
 ```
 
