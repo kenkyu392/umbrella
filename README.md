@@ -105,20 +105,20 @@ This is an example of middleware used to deliver static files such as images.
 
 ```go
 mw := umbrella.Use(
-	// Sets the ETag.
-	umbrella.ETag(),
-	// Add headers for basic cache control, etc.
-	umbrella.ResponseHeader(
-		umbrella.ClickjackingHeaderFunc("deny"),
-		umbrella.ContentSniffingHeaderFunc(),
-		umbrella.XSSFilteringHeaderFunc("1; mode=block"),
-		umbrella.CacheControlHeaderFunc("public", "max-age=86400", "no-transform"),
-		umbrella.ExpiresHeaderFunc(time.Second*86400),
-	),
-	// Set the timeout at 2s.
-	umbrella.Timeout(time.Second*2),
-	// Enable caching for 60s.
-	umbrella.Stampede(time.Second*60),
+  // Sets the ETag.
+  umbrella.ETag(),
+  // Add headers for basic cache control, etc.
+  umbrella.ResponseHeader(
+    umbrella.ClickjackingHeaderFunc("deny"),
+    umbrella.ContentSniffingHeaderFunc(),
+    umbrella.XSSFilteringHeaderFunc("1; mode=block"),
+    umbrella.CacheControlHeaderFunc("public", "max-age=86400", "no-transform"),
+    umbrella.ExpiresHeaderFunc(time.Second*86400),
+  ),
+  // Set the timeout at 2s.
+  umbrella.Timeout(time.Second*2),
+  // Enable caching for 60s.
+  umbrella.Stampede(time.Second*60),
 )
 ```
 
@@ -147,7 +147,8 @@ mw := umbrella.Use(
 | [Debug](#debug)                                                               | Debug provides middleware that executes the handler only if d is true. |
 | [Switch](#switch)                                                             | Switch provides a middleware that executes the next handler if the result of f is true, and executes h if it is false. |
 | [ETag](#etag)                                                                 | ETag provides middleware that calculates MD5 from the response data and sets it in the ETag header. |
-| [Expires](#expires) |                                                         | Expires provides middleware for adding response expiration dates. |
+| [Expires](#expires)                                                           | Expires provides middleware for adding response expiration dates. |
+| [Static](#static)                                                             | Provides a handler to deliver static files. |
 
 ### Use
 
@@ -1124,6 +1125,37 @@ func main() {
 	// Enable browser cache for 2 days.
 	mw := umbrella.Expires(time.Second * 172800)
 	m.Handle("/", mw(handler))
+
+	http.ListenAndServe(":3000", m)
+}
+```
+
+</details>
+
+
+## Static
+
+Provides a handler to deliver static files.
+
+<details>
+<summary><b><i>Example :</i></b></summary>
+
+```go
+package main
+
+import (
+	"net/http"
+
+	"github.com/kenkyu392/umbrella"
+)
+
+func main() {
+	m := http.NewServeMux()
+
+	// Add a handler to ServeMux to deliver static files.
+	umbrella.Static(m, "/static/", "./static")
+	// You can also use StaticHandler to create a http.Handler.
+	// m.Handle(umbrella.StaticHandler("/static", "./static"))
 
 	http.ListenAndServe(":3000", m)
 }
