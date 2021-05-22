@@ -7,17 +7,17 @@ import (
 )
 
 // Static calls StaticFS internally.
-func Static(m ServeMux, pattern, root string) {
-	StaticFS(m, pattern, http.Dir(root))
+func Static(m ServeMux, pattern, root string, middlewares ...func(http.Handler) http.Handler) {
+	StaticFS(m, pattern, http.Dir(root), middlewares...)
 }
 
 // StaticFS adds an endpoint for static files to ServeMux.
-func StaticFS(m ServeMux, pattern string, fs http.FileSystem) {
+func StaticFS(m ServeMux, pattern string, fs http.FileSystem, middlewares ...func(http.Handler) http.Handler) {
 	pattern2, handler := StaticHandlerFS(pattern, fs)
 	if pattern != pattern2 {
 		m.Handle(pattern, http.RedirectHandler(pattern2, http.StatusMovedPermanently))
 	}
-	m.Handle(pattern2, handler)
+	m.Handle(pattern2, Use(middlewares...)(handler))
 }
 
 // StaticHandler calls StaticFileHandlerFS internally.
