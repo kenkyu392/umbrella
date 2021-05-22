@@ -1145,6 +1145,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/kenkyu392/umbrella"
 )
@@ -1153,7 +1154,23 @@ func main() {
 	m := http.NewServeMux()
 
 	// Add a handler to ServeMux to deliver static files.
-	umbrella.Static(m, "/static/", "./static")
+	umbrella.Static(m, "/static", "./static",
+		// Any middleware can be passed as a variable-length argument.
+		// * Sets the ETag.
+		umbrella.ETag(),
+		// * Add headers for basic cache control, etc.
+		umbrella.ResponseHeader(
+			umbrella.ClickjackingHeaderFunc("deny"),
+			umbrella.ContentSniffingHeaderFunc(),
+			umbrella.XSSFilteringHeaderFunc("1; mode=block"),
+			umbrella.CacheControlHeaderFunc("public", "max-age=86400", "no-transform"),
+			umbrella.ExpiresHeaderFunc(time.Second*86400),
+		),
+		// * Set the timeout at 2s.
+		umbrella.Timeout(time.Second*2),
+		// * Enable caching for 60s.
+		umbrella.Stampede(time.Second*60),
+	)
 	// You can also use StaticHandler to create a http.Handler.
 	// m.Handle(umbrella.StaticHandler("/static", "./static"))
 
