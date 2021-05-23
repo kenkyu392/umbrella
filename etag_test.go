@@ -27,4 +27,11 @@ func TestEtag(t *testing.T) {
 		t.Errorf("got: %v, want: %v", got, want)
 	}
 	_ = resp.Body.Close()
+
+	req.Header.Set("If-None-Match", resp.Header.Get("ETag"))
+	resp, _ = httpClient.Do(req)
+	if got, want := resp.StatusCode, http.StatusNotModified; got != want {
+		t.Errorf("got: %v, want: %v", got, want)
+	}
+	_ = resp.Body.Close()
 }

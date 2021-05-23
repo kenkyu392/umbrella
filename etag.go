@@ -15,9 +15,14 @@ func ETag() func(http.Handler) http.Handler {
 			rec := httptest.NewRecorder()
 			next.ServeHTTP(rec, r)
 			body := rec.Body.Bytes()
-			w.Header().Set("ETag", fmt.Sprintf(`"%x"`, md5.Sum(body)))
+			etag := fmt.Sprintf(`"%x"`, md5.Sum(body))
+			w.Header().Set("ETag", etag)
 			for k, v := range rec.Header() {
 				w.Header()[k] = v
+			}
+			if r.Header.Get("If-None-Match") == etag {
+				w.WriteHeader(http.StatusNotModified)
+				return
 			}
 			w.WriteHeader(rec.Code)
 			_, _ = w.Write(body)
